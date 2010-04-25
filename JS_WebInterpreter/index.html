@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta http-equiv="Content-Script-Type" content="text/javascript" />
+<link rel="stylesheet" type="text/css" media="screen" href="style.css" charset="UTF-8" />
+<script type="text/javascript" src="brainfuck.js"></script>
+<title>Brainfuck Interpreter in JavaScript</title>
+</head>
+<body>
+<div id="main">
+	<div id="header">Brainfuck Interpreter in JavaScript</div>
+	<div id="discription">
+	一部で壊滅的に人気（ってなんだそりゃ）らしい、「<a href="http://ja.wikipedia.org/wiki/Brainfuck">Brainfuck</a>」をJavaScriptで実装してみました。<br />
+	そこまでやる気も無かったので、デバッガ等は実装しておりませんし、する気もございません。
+	</div>
+	<div id="panel">
+		<div id="ctrl_panel">
+			<div id="btn_panel">
+				ソースコードを入力して以下の「実行」を押してください。<br />
+				<input type="button" value="実行" onclick="exec();" onkeypress="exec();" />
+			</div>
+			<div id="char_panel">
+				<p>以下の文字を変更することで、他の言語（Oak!、MONAmona等）にも対応できます。</p>
+				<input type="text" class="char_input" id="char_pt_inc" value="&gt;" /><br />
+				<input type="text" class="char_input" id="char_pt_dec" value="&lt;" /><br />
+				<input type="text" class="char_input" id="char_pt_add" value="+" /><br />
+				<input type="text" class="char_input" id="char_pt_minus" value="-" /><br />
+				<input type="text" class="char_input" id="char_out" value="." /><br />
+				<input type="text" class="char_input" id="char_in" value="," /><br />
+				<input type="text" class="char_input" id="char_loop_in" value="[" /><br />
+				<input type="text" class="char_input" id="char_loop_ret" value="]" />
+			</div>
+		</div>
+		<div id="in_panel">
+			<h3>ソースコード</h3>
+			Brainfuckのソースコードを入力してね。<br />
+			<textarea id="source" rows="4" cols="40">>+++++++++[<++++++++>-]<.>+++++++[<++++>-]<+.+++++++..+++.[-]>++++++++[<++++>-]<
+.>+++++++++++[<+++++>-]<.>++++++++[<+++>-]<.+++.------.--------.[-]>++++++++[<++
+++>-]<+.[-]++++++++++.</textarea>
+			<h3>入力画面</h3>
+			「,」の入力先です。<br />
+			<textarea id="input" rows="4" cols="40"></textarea>
+			<h3>出力画面</h3>
+			「.」の出力先です。<br />
+			<textarea id="output" rows="4" cols="40"></textarea>
+		</div>
+	</div>
+	<div id="footer">
+	(C)2008 ψ（プサイ）の興味関心空間
+	</div>
+</div>
+</body>
+</html>
