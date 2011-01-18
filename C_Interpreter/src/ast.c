@@ -129,3 +129,77 @@ void AST_free(AST* self) {
 	free(self);
 }
 
+/*
+ *  実行関係
+ */
+
+void op_nop(ASTMachine* self,ASTNode* node){
+}
+void op_pt_inc(ASTMachine* self,ASTNode* node){
+	self->ptr++;
+}
+void op_pt_dec(ASTMachine* self,ASTNode* node){
+	self->ptr--;
+}
+void op_val_inc(ASTMachine* self,ASTNode* node){
+	(*self->ptr)++;
+}
+void op_val_dec(ASTMachine* self,ASTNode* node){
+	(*self->ptr)--;
+}
+void op_out(ASTMachine* self,ASTNode* node){
+	putchar(*self->ptr);
+}
+void op_input(ASTMachine* self,ASTNode* node){
+	*self->ptr = getchar();
+}
+void op_loop_start(ASTMachine* self,ASTNode* node){
+	if(!*self->ptr){
+		self->eip =node->jump_index;
+	}
+}
+void op_loop_end(ASTMachine* self,ASTNode* node){
+	if(*self->ptr){
+		self->eip =node->jump_index;
+	}
+}
+
+void (*op_funcs[])(ASTMachine* self,ASTNode* node) = {
+		op_nop,
+		op_pt_inc,
+		op_pt_dec,
+		op_val_inc,
+		op_val_dec,
+		op_out,
+		op_input,
+		op_loop_start,
+		op_loop_end,
+};
+
+ASTMachine* ASTMachine_new(AST* ast){
+	ASTMachine* self = malloc(sizeof(ASTMachine));
+	if(!self){
+		fprintf(stderr, "failed to allocate mem for ASTMachine.");
+		return 0;
+	}
+	memset(self,0,sizeof(ASTMachine));
+	self->ast = ast;
+	self->eip = 0;
+	self->ptr = self->memory;
+	return self;
+}
+
+void ASTMachine_exec(ASTMachine* self){
+	ASTNode* node;
+	self->eip = 0;
+	//printf("max_opcode = %d\n",vm->opcodes_count);
+	for(;self->eip < self->ast->opcodes_count;self->eip++){
+		node = &self->ast->opcodes[self->eip];
+		//printf("eip:%d opcode:%d jumpidx: %d\n",vm->eip,opcode->type,opcode->jump_index);
+		op_funcs[node->type](self,node);
+	}
+}
+
+void ASTMachine_free(ASTMachine* self){
+	free(self);
+}

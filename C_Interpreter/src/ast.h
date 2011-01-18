@@ -35,5 +35,20 @@ void AST_free(AST* self);
 #define ASTNode_type(self) ((self)->type)
 #define ASTNode_jmpIdx(self) ((self)->jump_index)
 
+/*
+ *  実行関係
+ */
+
+typedef struct ASTMachine {
+	AST* ast;
+	unsigned char memory[32*1024];
+	unsigned int eip;
+	unsigned char* ptr;
+} ASTMachine;
+
+ASTMachine* ASTMachine_new(AST* ast);
+void ASTMachine_exec();
+void ASTMachine_free(ASTMachine* self);
+
 #endif /* AST_H_ */
 

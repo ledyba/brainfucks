@@ -10,7 +10,7 @@
 #include "mem.h"
 #include "ast.h"
 
-#define VM_MEM (32*1024)
+#define VM_MEM (32*1024*1024)
 
 #define VM_OP_MASK (0x7)
 #define VM_OP_BIT (3)
@@ -23,16 +23,19 @@
 #define VM_OP_INPUT (5)
 #define VM_OP_OUTPUT (6)
 
-#define VM_OP_LENGTH (sizeof(unsigned short))
+typedef unsigned int VmOp;
+typedef signed int VmOpSigned;
+typedef unsigned int VmPtr;
+#define VM_OP_LENGTH (sizeof(VmOp))
 
 typedef struct VM{
-	MemController* Mem;
+	char* Mem;
 	unsigned int Ptr;
 	unsigned int PC;
 	unsigned int EndPC;
 }VM;
 
-VM* VM_new(AST* ast,size_t factor);
+VM* VM_new(AST* ast);
 void VM_free(VM* self);
 void VM_run(VM* self);
 void VM_show(VM* self);

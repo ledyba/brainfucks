@@ -14,7 +14,7 @@
  * ASTコンパイル後のサイズを返す
  */
 
-int VM_comsumeAST(AST* ast, unsigned int* now_ptr,unsigned int *opcode, unsigned int* operand){
+int VM_comsumeAST(AST* ast, VmPtr* now_ptr,VmOp *opcode, VmOp* operand){
 	if((*now_ptr) >= AST_length(ast)){
 		return 0;
 	}
@@ -98,9 +98,9 @@ size_t VM_convertASTtoByteCode(VM* self, AST* ast){
 	size_t jmp_stack[1000];
 	size_t jmp_stack_idx = 0;
 	size_t opcode_length = 0;
-	unsigned int now_ptr = 0;
-	unsigned int opcode = 0;
-	unsigned int operand = 0;
+	VmPtr now_ptr = 0;
+	VmOp opcode = 0;
+	VmOp operand = 0;
 	while(VM_comsumeAST(ast,&now_ptr,&opcode,&operand)){
 		if(opcode == VM_OP_JMP){
 			jmp_stack[jmp_stack_idx] = opcode_length;
@@ -111,33 +111,31 @@ size_t VM_convertASTtoByteCode(VM* self, AST* ast){
 			}
 			jmp_stack_idx--;
 			//JMP前
-			MemController_writeShort(self->Mem,
-					jmp_stack[jmp_stack_idx],
-					((opcode_length) << VM_OP_BIT) | VM_OP_JMP
-					);
+			*((VmOp*)(&(self->Mem[jmp_stack[jmp_stack_idx]])))=((opcode_length) << VM_OP_BIT) | VM_OP_JMP;
 			//JMP後
-			MemController_writeShort(self->Mem,
-					opcode_length,
-					(jmp_stack[jmp_stack_idx] << VM_OP_BIT) | VM_OP_JMPEND
-					);
+			*((VmOp*)(&(self->Mem[opcode_length])))=(jmp_stack[jmp_stack_idx] << VM_OP_BIT) | VM_OP_JMPEND;
 		}else{
-			short inst = (operand << VM_OP_BIT) | opcode;
-			MemController_writeShort(self->Mem,opcode_length,inst);
+			VmOp inst = (operand << VM_OP_BIT) | opcode;
+			*((VmOp*)(&(self->Mem[opcode_length])))=inst;
 		}
 		opcode_length+=VM_OP_LENGTH;
 	}
 	return opcode_length;
 }
 
-VM* VM_new(AST* ast,size_t factor){
+VM* VM_new(AST* ast){
 	VM* self = malloc(sizeof(VM));
-	self->Mem = MemController_new(factor, VM_MEM);
+	self->Mem = malloc(VM_MEM);
+	if(!self->Mem){
+		fprintf(stderr, __FILE__"(in %d) failed to allocate mem.\n", __LINE__);
+		return 0;
+	}
 	self->PC = 0;
 	self->Ptr = self->EndPC = VM_convertASTtoByteCode(self,ast);
 	return self;
 }
 void VM_free(VM* self){
-	MemController_free(self->Mem);
+	free(self->Mem);
 	free(self);
 }
 
@@ -145,26 +143,25 @@ void VM_show(VM* self){
 	self->PC = 0;
 	self->Ptr = self->EndPC;
 	while(self->PC < self->EndPC){
-		unsigned short inst = MemController_readShort(self->Mem, self->PC);
-		unsigned short operand = inst >> VM_OP_BIT;
+		VmOp inst = *((unsigned int*)(&(self->Mem[self->PC])));
 		switch(inst & VM_OP_MASK){
 		case VM_OP_ADD:
-			printf("%04d / ADD %02x\n", self->PC, operand);
+			printf("%08x / ADD %04x\n", self->PC, (((VmOpSigned)inst) >> VM_OP_BIT));
 			break;
 		case VM_OP_FORWARD:
-			printf("%04d / FORWARD %02x\n", self->PC, operand);
+			printf("%08x / FORWARD %04x\n", self->PC, (((VmOpSigned)inst) >> VM_OP_BIT));
 			break;
 		case VM_OP_JMP:
-			printf("%04d / JMP %d\n", self->PC, operand);
+			printf("%08x / JMP %04x\n", self->PC, (((VmOp)inst) >> VM_OP_BIT));
 			break;
 		case VM_OP_JMPEND:
-			printf("%04d / JMPEND %d\n",self->PC, operand);
+			printf("%08x / JMPEND %04x\n",self->PC, (((VmOp)inst) >> VM_OP_BIT));
 			break;
 		case VM_OP_INPUT:
-			printf("%04d / IN\n",self->PC);
+			printf("%08x / IN\n",self->PC);
 			break;
 		case VM_OP_OUTPUT:
-			printf("%04d / OUT\n",self->PC);
+			printf("%08x / OUT\n",self->PC);
 			break;
 		default:
 			fprintf(stderr, __FILE__"(%d): invalid instruction:%02x (%dth)\n",__LINE__,inst & VM_OP_MASK,self->PC);
@@ -176,73 +173,53 @@ void VM_show(VM* self){
 void VM_run(VM* self){
 	self->PC = 0;
 	self->Ptr = self->EndPC;
-	MemController_clear(self->Mem, self->EndPC, 0);
+	memset(&self->Mem[self->EndPC],0,VM_MEM-self->EndPC);
 	while(self->PC < self->EndPC){
-		unsigned short inst = MemController_readShort(self->Mem, self->PC);
-		unsigned int operand = inst >> VM_OP_BIT;
+		VmOp inst = *((unsigned int*)(&(self->Mem[self->PC])));
 		switch(inst & VM_OP_MASK){
 		case VM_OP_ADD:
-		{
 #ifdef DEBUG
-			printf("%04d / ADD %02x Ptr: %04d\n", self->PC, operand, self->Ptr);
+			printf("%08x / ADD %04x Ptr: %04x(=%02x)\n", self->PC, (((VmOpSigned)inst) >> VM_OP_BIT), self->Ptr, self->Mem[self->Ptr]);
 #endif
-			unsigned short tmp = MemController_readByte(self->Mem, self->Ptr);
-			if(operand & 0100){
-				operand |= 0xfffffe00;
-			}
-			tmp = tmp + operand;
-			MemController_writeByte(self->Mem,self->Ptr,(unsigned char)tmp);
-		}
+			self->Mem[self->Ptr] = (unsigned char)(self->Mem[self->Ptr] + (((VmOpSigned)inst) >> VM_OP_BIT));
 			break;
 		case VM_OP_FORWARD:
 #ifdef DEBUG
-			printf("%04d / FORWARD %02x Ptr: %04d\n", self->PC, operand, self->Ptr);
+			printf("%08x / FORWARD %04x Ptr: %04x(=%02x)\n", self->PC, (((VmOpSigned)inst) >> VM_OP_BIT), self->Ptr, (unsigned char)self->Mem[self->Ptr]);
 #endif
-			if(operand & 0100){
-				operand |= 0xfffffe00;
-			}
-			self->Ptr = self->Ptr + operand;
+			self->Ptr = self->Ptr + (((VmOpSigned)inst) >> VM_OP_BIT);
 			break;
 		case VM_OP_JMP:
-		{
 #ifdef DEBUG
-			printf("%04d / JMP %d\n", self->PC, operand);
+			printf("%08x / JMP %04x Ptr: %04x(=%02x)\n", self->PC, (((VmOp)inst) >> VM_OP_BIT), self->Ptr, (unsigned char)self->Mem[self->Ptr]);
 #endif
-			unsigned short tmp = MemController_readByte(self->Mem, self->Ptr);
-			if(!tmp){
-				self->PC = operand;
+			if(!self->Mem[self->Ptr]){
+				self->PC = (((VmOp)inst) >> VM_OP_BIT);
 			}
-		}
 			break;
 		case VM_OP_JMPEND:
-		{
 #ifdef DEBUG
-			printf("%04d / JMPEND %d\n",self->PC, operand);
+			printf("%08x / JMPEND %04x Ptr: %04x(=%02x)\n",self->PC, operand, self->Ptr, (unsigned char)self->Mem[self->Ptr]);
 #endif
-			unsigned short tmp = MemController_readByte(self->Mem, self->Ptr);
-			if(tmp){
-				self->PC = operand;
+			if(self->Mem[self->Ptr]){
+				self->PC = (((VmOp)inst) >> VM_OP_BIT);
 			}
-		}
 			break;
 		case VM_OP_INPUT:
 #ifdef DEBUG
-			printf("%04d / IN\n",self->PC);
+			printf("%08x / IN\n",self->PC);
 #endif
-//			MemController_writeByte(self->Mem, self->Ptr, getchar());
+			self->Mem[self->Ptr] = getchar();
 			break;
 		case VM_OP_OUTPUT:
 #ifdef DEBUG
-			printf("%04d / OUT\n",self->PC);
+			printf("%08x / OUT\n",self->PC);
 #endif
-//			putchar(MemController_readByte(self->Mem, self->Ptr));
+			putchar(self->Mem[self->Ptr]);
 			break;
 		default:
 			fprintf(stderr, __FILE__"(%d): invalid instruction:%02x (%dth)\n",__LINE__,inst & VM_OP_MASK,self->PC);
 		}
 		self->PC+=VM_OP_LENGTH;
-#ifdef DEBUG
-		fflush(stdout);
-#endif
 	}
 }
