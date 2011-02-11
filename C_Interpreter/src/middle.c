@@ -12,12 +12,17 @@
 
 
 int _consumeAST(AST* ast, unsigned int idx, unsigned char* type, int* cnt){
+	if((idx+*cnt) >= AST_length(ast)){
+		*cnt = 0;
+		*type = AST_TYPE_NOP;
+		return 0;
+	}
 	*type = AST_readNode(ast,idx)->type;
 	*cnt = 1;
-	if(((*type) & (AST_TYPE_OUT | AST_TYPE_INPUT)) != 0 ){
+	if(((*type) & (AST_TYPE_OUT | AST_TYPE_INPUT | AST_TYPE_LOOP_START | AST_TYPE_LOOP_END)) != 0 ){
 		return (idx+*cnt) < AST_length(ast);
 	}
-	while(AST_readNode(ast,idx+*cnt)->type == *type && (idx+*cnt) < AST_length(ast)){
+	while((idx+*cnt) < AST_length(ast) && AST_readNode(ast,idx+*cnt)->type == *type){
 		(*cnt)++;
 	}
 	return (idx+*cnt) < AST_length(ast);
@@ -82,7 +87,7 @@ MiddleLoop* _MiddleLoop_new(AST* ast, unsigned int* idx){
 			running = 0;
 			break;
 		default:
-			fprintf(stderr,"Invalid operator: (%06d/%08x)",*idx,ast_type);
+			fprintf(stderr,"Invalid operator: #%06d: %08x",*idx,ast_type);
 			break;
 		}
 	}

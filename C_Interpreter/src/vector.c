@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stddef.h>
+#include <string.h>
 
 Vector* Vector_new(size_t obj_size, VectorCopyFunc copy_func){
 	Vector* self = malloc(sizeof(Vector));
