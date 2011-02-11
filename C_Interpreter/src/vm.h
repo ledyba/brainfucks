@@ -10,7 +10,7 @@
 #include "mem.h"
 #include "ast.h"
 
-#define VM_MEM (32*1024*1024)
+#define VM_MEM (64*1024*1024)
 
 #define VM_OP_MASK (0x7)
 #define VM_OP_BIT (3)
@@ -37,7 +37,7 @@ typedef struct VM{
 
 VM* VM_new(AST* ast);
 void VM_free(VM* self);
-void VM_run(VM* self);
+void VM_exec(VM* self);
 void VM_show(VM* self);
 
 

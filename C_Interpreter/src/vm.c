@@ -170,7 +170,7 @@ void VM_show(VM* self){
 	}
 }
 
-void VM_run(VM* self){
+void VM_exec(VM* self){
 	self->PC = 0;
 	self->Ptr = self->EndPC;
 	memset(&self->Mem[self->EndPC],0,VM_MEM-self->EndPC);
@@ -178,19 +178,19 @@ void VM_run(VM* self){
 		VmOp inst = *((unsigned int*)(&(self->Mem[self->PC])));
 		switch(inst & VM_OP_MASK){
 		case VM_OP_ADD:
-#ifdef DEBUG
+#ifdef TRACE
 			printf("%08x / ADD %04x Ptr: %04x(=%02x)\n", self->PC, (((VmOpSigned)inst) >> VM_OP_BIT), self->Ptr, self->Mem[self->Ptr]);
 #endif
 			self->Mem[self->Ptr] = (unsigned char)(self->Mem[self->Ptr] + (((VmOpSigned)inst) >> VM_OP_BIT));
 			break;
 		case VM_OP_FORWARD:
-#ifdef DEBUG
+#ifdef TRACE
 			printf("%08x / FORWARD %04x Ptr: %04x(=%02x)\n", self->PC, (((VmOpSigned)inst) >> VM_OP_BIT), self->Ptr, (unsigned char)self->Mem[self->Ptr]);
 #endif
 			self->Ptr = self->Ptr + (((VmOpSigned)inst) >> VM_OP_BIT);
 			break;
 		case VM_OP_JMP:
-#ifdef DEBUG
+#ifdef TRACE
 			printf("%08x / JMP %04x Ptr: %04x(=%02x)\n", self->PC, (((VmOp)inst) >> VM_OP_BIT), self->Ptr, (unsigned char)self->Mem[self->Ptr]);
 #endif
 			if(!self->Mem[self->Ptr]){
@@ -198,21 +198,21 @@ void VM_run(VM* self){
 			}
 			break;
 		case VM_OP_JMPEND:
-#ifdef DEBUG
-			printf("%08x / JMPEND %04x Ptr: %04x(=%02x)\n",self->PC, operand, self->Ptr, (unsigned char)self->Mem[self->Ptr]);
+#ifdef TRACE
+			printf("%08x / JMPEND %04x Ptr: %04x(=%02x)\n",self->PC, (((VmOpSigned)inst) >> VM_OP_BIT), self->Ptr, (unsigned char)self->Mem[self->Ptr]);
 #endif
 			if(self->Mem[self->Ptr]){
 				self->PC = (((VmOp)inst) >> VM_OP_BIT);
 			}
 			break;
 		case VM_OP_INPUT:
-#ifdef DEBUG
+#ifdef TRACE
 			printf("%08x / IN\n",self->PC);
 #endif
 			self->Mem[self->Ptr] = getchar();
 			break;
 		case VM_OP_OUTPUT:
-#ifdef DEBUG
+#ifdef TRACE
 			printf("%08x / OUT\n",self->PC);
 #endif
 			putchar(self->Mem[self->Ptr]);

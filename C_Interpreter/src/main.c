@@ -11,6 +11,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include "ast.h"
+#include "middle.h"
 #include "vm.h"
 
 #define MODE_AST 1
@@ -60,6 +62,7 @@ int main(int argc,char* argv[]) {
 	}
 	if(!filename){
 		usage();
+		return EXIT_SUCCESS;
 	}
 	printf("target source: %s\n",filename);
 	//ASTへの変換
@@ -74,7 +77,7 @@ int main(int argc,char* argv[]) {
 	printf("AST converted to Middle Code...");
 	fflush(stdout);
 	start = clock();
-	//TODO: ここで変換
+	Middle* middle = Middle_new(ast);
 	end = clock();
 	printf("done in %d ms.\n",(int)(end-start));
 	fflush(stdout);
@@ -91,7 +94,8 @@ int main(int argc,char* argv[]) {
 		printf("done in %d ms.\n",(int)(end-start));
 		fflush(stdout);
 		if(debug){
-//			AST_show(ast);
+			AST_show(ast);
+			fflush(stdout);
 		}
 		printf("executing...\n--console--\n");
 		fflush(stdout);
@@ -101,6 +105,27 @@ int main(int argc,char* argv[]) {
 		printf("\n----\nexecuted in %d ms.\n",(int)(end-start));
 		fflush(stdout);
 		ASTMachine_free(ast_machine);
+	}
+
+	if(mode & MODE_MIDDLE){
+		printf("--------------------\nexecuting in MiddleCode mode, preparing...");
+		fflush(stdout);
+			start = clock();
+				MiddleMachine* middle_machine = MiddleMachine_new(middle);
+			end = clock();
+		printf("done in %d ms.\n",(int)(end-start));
+		fflush(stdout);
+		if(debug){
+			Middle_show(middle);
+		}
+		printf("executing...\n--console--\n");
+		fflush(stdout);
+		start = clock();
+			MiddleMachine_run(middle_machine);
+		end = clock();
+		printf("\n----\nexecuted in %d ms.\n",(int)(end-start));
+		fflush(stdout);
+		MiddleMachine_free(middle_machine);
 	}
 
 	if(mode & MODE_VM){
@@ -117,13 +142,17 @@ int main(int argc,char* argv[]) {
 		printf("executing...\n--console--\n");
 		fflush(stdout);
 		start = clock();
-			VM_run(vm);
+			VM_exec(vm);
 		end = clock();
 		printf("\n----\nexecuted in %d ms.\n",(int)(end-start));
 		fflush(stdout);
 		VM_free(vm);
 	}
 
+	//解放
+	Middle_free(middle);
 	AST_free(ast);
 	return EXIT_SUCCESS;
 }
+
+
