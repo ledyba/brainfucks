@@ -1,0 +1,15 @@
+(define (main args)
+	(letrec
+		(
+			(loop (lambda (cnt cont)
+				(print cnt)
+				(flush)
+				(call/cc )
+				(loop (+ cnt 1))
+				(print "back" cnt)
+				(flush)
+			))
+		)
+		(loop 0)
+	)
+)
