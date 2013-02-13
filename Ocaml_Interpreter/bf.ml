@@ -71,7 +71,7 @@ let rec runMachine machine =
 ;;
 
 let updateList left idx cnt =
-    let (before, after) = (ExtList.List.split_nth ((List.length left) - idx - 1) left)
+    let (before, after) = (List.split_nth ((List.length left) - idx - 1) left)
     in
         List.concat [before; ((LoopStart cnt)::(List.tl after))];;
 
