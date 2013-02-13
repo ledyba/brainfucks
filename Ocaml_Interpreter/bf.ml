@@ -65,6 +65,6 @@ let rec runMachine machine =
 let echo = [|ValInc; LoopStart 7; PtInc;GetC;PutC;PtDec; LoopEnd 2;|];;
 
 (* print source  *)
-print_endline (string_of_machine (makeMachine sample));;
-runMachine ( makeMachine sample) ;;
+print_endline (string_of_machine (makeMachine echo));;
+runMachine ( makeMachine echo) ;;
 
