@@ -1,0 +1,17 @@
+INPUT=1
+DEC=4
+INC=3
+WS=9
+PDEC=6
+LOOP_START=7
+OUTPUT=2
+LOOP_END=8
+PINC=5
+'<'=6
+'['=7
+'-'=4
+'+'=3
+','=1
+'.'=2
+'>'=5
+']'=8
