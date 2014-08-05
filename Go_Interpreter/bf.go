@@ -1,6 +1,7 @@
 package main
 
 import (
+    "flag"
     "fmt"
     "os"
 )
@@ -123,8 +124,27 @@ func run(src []*Inst) {
 	}
 }
 
+func usage() {
+	fmt.Fprintf(os.Stderr, "usage: go run bf.go <sourcefile>\n");
+    flag.PrintDefaults();
+    os.Exit(2);
+}
+
 func main() {
-	src := compile("+++++++++[>++++++++>+++++++++++>+++++<<<-]>.>++.+++++++..+++.>-.------------.<++++++++.--------.+++.------.--------.>+.");
+    flag.Usage = usage
+    flag.Parse();
+    args := flag.Args();
+    if(len(args) < 1){
+    	usage();
+    }
+
+	fmt.Printf("src: %s\n", args[0]);
+	inFile,_ := os.Open(args[0]);
+	fi,_ := inFile.Stat();
+	buff := make([]byte, fi.Size());
+	inFile.Read(buff);
+	inFile.Close();
+	src := compile(string(buff));
 	run(src);
 }
 
