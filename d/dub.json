@@ -1,0 +1,9 @@
+{
+	"authors": [
+		"Kaede Fujisaki <kaede@hexe.net>"
+	],
+	"copyright": "Copyright © 2023, Kaede Fujisaki <kaede@hexe.net>",
+	"description": "Brainfuck interpreter",
+	"license": "AGPL-3.0-or-later",
+	"name": "bf"
+}

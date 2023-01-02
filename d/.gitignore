@@ -1,0 +1,16 @@
+.dub
+docs.json
+__dummy.html
+docs/
+/bf
+bf.so
+bf.dylib
+bf.dll
+bf.a
+bf.lib
+bf-test-*
+*.exe
+*.pdb
+*.o
+*.obj
+*.lst
